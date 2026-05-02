@@ -1,0 +1,19 @@
+project_name: roadsign-vision-detection-recognition
+
+detection:
+  model_name: yolov8n.pt
+  image_size: 640
+  epochs: 20
+  batch_size: 8
+  confidence_threshold: 0.25
+
+recognition:
+  classifier_model_path: models/best_resnet18_gtsrb.pth
+  num_classes: 43
+  image_size: 224
+
+paths:
+  raw_data_dir: data/raw
+  processed_data_dir: data/processed
+  model_dir: models
+  report_dir: reports
