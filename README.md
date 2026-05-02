@@ -1,80 +1,121 @@
 # RoadSign Vision: Traffic Sign Detection and Recognition
 
-An advanced computer vision project for detecting and recognizing traffic signs in full road images.
+RoadSign Vision is an end-to-end computer vision project for detecting and recognizing traffic signs in full road images.
 
-This project extends traffic sign classification into a more realistic driver-assistance scenario. Instead of assuming that the traffic sign is already cropped, the system detects traffic signs in full road images, draws bounding boxes around them, and recognizes the detected sign class.
+The project combines:
+
+1. **YOLOv8** for traffic sign detection.
+2. **ResNet-18** for traffic sign recognition/classification.
+3. **Streamlit** for an interactive demo application.
+
+Unlike a simple classifier that requires a cropped traffic sign image, this system works on full road images and automatically finds traffic signs before recognizing them.
 
 ---
 
 ## Project Overview
 
-Traffic sign recognition is an important component of driver-assistance and autonomous driving systems. A real-world system should be able to locate traffic signs in full road scenes and identify what each sign means.
+Traffic sign recognition is an important component of driver-assistance and autonomous driving systems.
 
-This project focuses on building an end-to-end pipeline for:
+This project follows a two-stage pipeline:
 
 ```text
 Full road image
-→ Traffic sign detection
-→ Bounding box prediction
-→ Traffic sign recognition
-→ Visual output with labels and confidence scores
+→ YOLO detects traffic sign locations
+→ Detected signs are cropped
+→ ResNet-18 classifies each crop
+→ Final image displays bounding boxes, labels, and confidence scores
 ```
 
 ---
 
-## Problem Statement
+## Demo
 
-A basic traffic sign classifier can recognize a sign only when the image is already cropped around the sign.
+The project includes a Streamlit app.
 
-However, in real-world driving scenes, traffic signs appear:
+The app allows users to:
 
-- at different distances
-- under different lighting conditions
-- at different scales
-- with different backgrounds
-- sometimes partially occluded
+- Upload a road image
+- Detect traffic signs
+- View bounding boxes
+- Recognize the exact traffic sign class
+- Display detection confidence
+- Display recognition confidence
+- Show top-3 classification predictions
 
-This project addresses the more realistic task of detecting and recognizing traffic signs directly from full road images.
+Run the app with:
+
+```bash
+streamlit run app/streamlit_app.py
+```
 
 ---
 
-## Project Objectives
+## Example Output
 
-- Prepare a traffic sign detection dataset with bounding box annotations.
-- Convert annotations into YOLO format.
-- Fine-tune a YOLO object detection model.
-- Evaluate detection performance using object detection metrics.
-- Connect detection with recognition/classification.
-- Build a Streamlit application for image upload and visual prediction.
-- Display detected traffic signs with bounding boxes, labels, and confidence scores.
+The system outputs an annotated road image with labels such as:
+
+```text
+Speed limit 50 km/h | det 0.91 | cls 0.98
+```
+
+Where:
+
+- `det` = YOLO detection confidence
+- `cls` = ResNet recognition confidence
 
 ---
 
 ## Dataset
 
-This project uses the **German Traffic Sign Detection Benchmark**, also known as **GTSDB**.
+This project uses the **German Traffic Sign Detection Benchmark**, also known as **GTSDB**, for detection.
 
-The dataset contains full road images with traffic sign bounding box annotations.
+The dataset contains full road images with bounding box annotations around traffic signs.
 
-The raw dataset is downloaded locally into:
+After preprocessing, the dataset is converted into YOLO format.
+
+### Dataset Summary
+
+| Item | Count |
+|---|---:|
+| Total images | 900 |
+| Training images | 600 |
+| Validation images | 300 |
+| Traffic sign bounding boxes | 1,213 |
+| Detection classes | 1 |
+
+For the YOLO detector, all traffic sign categories are converted into one class:
 
 ```text
-data/raw/
+traffic sign
 ```
 
-The processed YOLO-format dataset is saved into:
-
-```text
-data/processed/
-```
-
-Dataset files are not uploaded to GitHub because they are large.
+The exact traffic sign type is predicted later by the ResNet-18 classifier.
 
 ---
 
-## Planned Dataset Format
+## Why One Detection Class?
 
-The processed dataset will follow the YOLO format:
+Originally, traffic signs have many different classes such as stop, yield, speed limit, and warning signs.
+
+However, the detection dataset is relatively small. Training YOLO to detect 43 separate classes from only 900 images is difficult.
+
+Instead, this project uses a stronger two-stage approach:
+
+```text
+YOLO detector:
+Find where traffic signs are.
+
+ResNet classifier:
+Recognize what each detected sign means.
+```
+
+This makes the system more reliable and easier to train.
+
+---
+
+## Processed Dataset Format
+
+The dataset is converted into YOLO format:
 
 ```text
 data/processed/
@@ -90,53 +131,70 @@ data/processed/
 └── data.yaml
 ```
 
-Each label file will contain bounding boxes in this format:
+Each YOLO label file uses:
 
 ```text
 class_id x_center y_center width height
 ```
 
-All bounding box values are normalized between `0` and `1`.
+All bounding box coordinates are normalized between `0` and `1`.
 
 ---
 
-## Model Architecture
+## Models
 
-The project uses a two-stage design:
+### 1. Detection Model
 
-```text
-Stage 1: YOLO detector
-Full road image → traffic sign bounding boxes
-
-Stage 2: Recognition model
-Detected traffic sign crop → traffic sign class
-```
-
-### Detection Model
-
-The detection model is based on YOLO.
-
-Initial model:
+The detection model is:
 
 ```text
 YOLOv8 Nano
 ```
 
-This model is lightweight and suitable for experimentation on a laptop.
+It is fine-tuned on the processed GTSDB dataset.
 
-### Recognition Model
-
-The recognition stage can use a fine-tuned ResNet-18 classifier trained on cropped traffic sign images.
-
-This creates a complete detection + recognition pipeline:
+The trained detector is saved locally at:
 
 ```text
-Road image
-→ YOLO detects traffic sign
-→ Crop detected sign
-→ ResNet-18 recognizes sign class
-→ App displays result
+models/yolo_gtsdb/weights/best.pt
 ```
+
+### 2. Recognition Model
+
+The recognition model is:
+
+```text
+ResNet-18
+```
+
+It was fine-tuned on cropped traffic sign images from the GTSRB classification dataset.
+
+The trained classifier is saved locally at:
+
+```text
+models/best_resnet18_gtsrb.pth
+```
+
+Model files are not uploaded to GitHub because they are large.
+
+---
+
+## Results
+
+### YOLO Detection Results
+
+The YOLO detector was trained for 10 epochs.
+
+Final validation performance:
+
+| Metric | Result |
+|---|---:|
+| Precision | 87.0% |
+| Recall | 88.9% |
+| mAP50 | 94.3% |
+| mAP50-95 | 73.5% |
+
+These results show that the detector can locate most traffic signs in full road images with strong bounding-box quality.
 
 ---
 
@@ -144,13 +202,13 @@ Road image
 
 ```text
 1. Download GTSDB dataset
-2. Parse original bounding box annotations
-3. Convert annotations to YOLO format
-4. Train YOLO detector
-5. Evaluate detector performance
-6. Run inference on road images
-7. Crop detected traffic signs
-8. Recognize detected signs
+2. Extract raw road images and annotations
+3. Convert annotations into YOLO format
+4. Train YOLOv8 detector
+5. Detect traffic signs in full road images
+6. Crop detected sign regions
+7. Classify crops using ResNet-18
+8. Draw bounding boxes and predicted labels
 9. Display results in Streamlit
 ```
 
@@ -212,7 +270,7 @@ git clone https://github.com/hadimss/roadsign-vision-detection-recognition.git
 cd roadsign-vision-detection-recognition
 ```
 
-Create and activate a virtual environment:
+Create a virtual environment:
 
 ```bash
 python3 -m venv .venv
@@ -228,6 +286,12 @@ pip install -r requirements.txt
 ---
 
 ## Dataset Preparation
+
+The raw GTSDB dataset should be placed in:
+
+```text
+data/raw/
+```
 
 After downloading and extracting the dataset, prepare it for YOLO training:
 
@@ -247,37 +311,91 @@ data/processed/data.yaml
 
 ---
 
-## Training
+## Training the Detector
 
-Train the YOLO detector:
+Train YOLOv8 on the processed dataset:
 
 ```bash
 python3 src/train_detector.py
 ```
 
-The best detector checkpoint will be saved locally under:
+The best model is saved locally at:
 
 ```text
 models/yolo_gtsdb/weights/best.pt
 ```
 
-Model checkpoints are ignored by Git because they are large.
+---
+
+## Running Detection Only
+
+To test only the YOLO detector:
+
+```bash
+python3 src/detect.py
+```
+
+This saves an annotated detection result to:
+
+```text
+reports/figures/detection_result.jpg
+```
 
 ---
 
-## Application
+## Running Detection + Recognition
 
-The final application will allow a user to upload a road image and receive:
+To run the full pipeline:
 
-- detected traffic sign locations
-- bounding boxes
-- predicted class labels
-- confidence scores
+```bash
+python3 src/pipeline.py --image data/processed/images/train/00000.jpg
+```
 
-The app will be run using:
+The output is saved to:
+
+```text
+reports/figures/detection_recognition_result.jpg
+```
+
+---
+
+## Running the Streamlit App
+
+Start the application:
 
 ```bash
 streamlit run app/streamlit_app.py
+```
+
+Then upload a road image.
+
+The app will display:
+
+- the original image
+- the annotated result image
+- detected traffic sign crops
+- recognized sign classes
+- detection confidence
+- recognition confidence
+- top-3 recognition predictions
+
+---
+
+## Required Local Model Files
+
+This project requires two local model files:
+
+```text
+models/yolo_gtsdb/weights/best.pt
+models/best_resnet18_gtsrb.pth
+```
+
+These files are ignored by Git and are not uploaded to GitHub.
+
+To copy the ResNet classifier from the related classification project:
+
+```bash
+cp /Users/hadialmasri/traffic-sign-recognition-gtsrb/models/best_resnet18_gtsrb.pth models/best_resnet18_gtsrb.pth
 ```
 
 ---
@@ -297,37 +415,63 @@ streamlit run app/streamlit_app.py
 
 ---
 
-## Current Status
+## Development Roadmap
 
-Project setup and documentation are in progress.
+- [x] Create project structure
+- [x] Add dataset preparation script
+- [x] Convert GTSDB annotations to YOLO format
+- [x] Train YOLO detector
+- [x] Run detection inference
+- [x] Add ResNet-18 recognition module
+- [x] Build detection + recognition pipeline
+- [x] Build Streamlit demo app
+- [ ] Add more example result images
+- [ ] Add video or webcam inference
+- [ ] Deploy the Streamlit app online
 
-Completed:
+---
 
-- Repository structure
-- Configuration file
-- Project documentation
-- Dataset download in progress
-- YOLO dataset preparation script
-- YOLO training script
+## Limitations
 
-Next steps:
+This project is intended for educational and research purposes.
 
-- Finish dataset download
-- Convert GTSDB annotations to YOLO format
-- Train the detection model
-- Evaluate detection performance
-- Build the detection + recognition demo app
+Current limitations:
+
+- The detector was trained on a relatively small dataset.
+- The dataset is based on German traffic signs.
+- Performance may decrease in unseen countries or unusual road environments.
+- Poor lighting, motion blur, or occlusion may reduce accuracy.
+- The system should not be used for real-world safety-critical driving decisions.
 
 ---
 
 ## Future Improvements
 
-- Add real-time webcam or video inference.
-- Compare YOLOv8n with larger YOLO models.
-- Add two-stage recognition using a fine-tuned ResNet classifier.
+- Train on a larger and more diverse traffic sign detection dataset.
+- Compare YOLOv8 Nano with YOLOv8 Small or YOLOv8 Medium.
+- Add real-time webcam inference.
+- Add video file inference.
 - Deploy the Streamlit app online.
 - Export the detector to ONNX for lightweight deployment.
-- Add support for multiple traffic signs in one image.
+- Improve recognition using ConvNeXt or Vision Transformer models.
+
+---
+
+## Related Project
+
+This project extends a traffic sign classification project based on ResNet-18 and GTSRB.
+
+The classification project focuses on:
+
+```text
+cropped traffic sign image → exact traffic sign class
+```
+
+This project focuses on:
+
+```text
+full road image → detect sign → crop sign → recognize class
+```
 
 ---
 
