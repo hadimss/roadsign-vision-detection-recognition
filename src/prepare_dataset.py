@@ -209,7 +209,7 @@ def convert_dataset():
 
         with open(output_label_path, "w") as label_file:
             for box in boxes:
-                class_id = box["class_id"]
+                class_id = 0
                 x_center, y_center, width, height = convert_bbox_to_yolo(
                     box,
                     image_width,
@@ -225,11 +225,11 @@ def convert_dataset():
         total_boxes += len(boxes)
 
     data_yaml = {
-        "path": str(PROCESSED_DATA_DIR.resolve()),
-        "train": "images/train",
-        "val": "images/val",
-        "nc": len(CLASS_NAMES),
-        "names": CLASS_NAMES,
+    "path": str(PROCESSED_DATA_DIR.resolve()),
+    "train": "images/train",
+    "val": "images/val",
+    "nc": 1,
+    "names": ["traffic sign"],
     }
 
     data_yaml_path = PROCESSED_DATA_DIR / "data.yaml"

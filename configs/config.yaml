@@ -3,7 +3,7 @@ project_name: roadsign-vision-detection-recognition
 detection:
   model_name: yolov8n.pt
   image_size: 640
-  epochs: 20
+  epochs: 10
   batch_size: 8
   confidence_threshold: 0.25
 

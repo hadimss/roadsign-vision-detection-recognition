@@ -87,7 +87,7 @@ def detect_image(
 if __name__ == "__main__":
     # Example usage after dataset is extracted:
     # python3 src/detect.py
-    example_image = "data/raw/FullIJCNN2013/00000.ppm"
+    example_image = "data/processed/images/train/00000.jpg"
 
     detect_image(
         image_path=example_image,
