@@ -197,6 +197,35 @@ Final validation performance:
 These results show that the detector can locate most traffic signs in full road images with strong bounding-box quality.
 
 ---
+---
+
+## Visual Results
+
+### YOLO Detection Result
+
+The YOLO detector identifies traffic signs in full road images and draws bounding boxes around them.
+
+![YOLO Detection Result](reports/figures/detection_result.jpg)
+
+---
+
+### Detection + Recognition Result
+
+The full pipeline detects the sign, crops it, classifies it using the ResNet-18 recognizer, and displays the predicted traffic sign class.
+
+![Detection and Recognition Result](reports/figures/detection_recognition_result.jpg)
+
+---
+### Dataset Label Distribution
+
+![YOLO Label Distribution](reports/figures/yolo_labels.jpg)
+
+
+### Training Curves
+
+YOLO training performance over 10 epochs.
+
+![YOLO Training Results](reports/figures/yolo_results.png)
 
 ## Project Pipeline
 
