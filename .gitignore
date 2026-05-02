@@ -1,0 +1,31 @@
+# Project data
+data/raw/
+data/processed/
+
+# Model checkpoints
+models/*.pt
+models/*.pth
+models/*.ckpt
+
+# Large files
+*.zip
+*.tar
+*.tar.gz
+
+# Python environment
+.venv/
+env/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# Streamlit secrets
+.streamlit/secrets.toml
